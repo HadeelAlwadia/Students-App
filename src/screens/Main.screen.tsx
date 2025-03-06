@@ -15,9 +15,9 @@ const Main = () => {
   const [filtering, setFiltering] = useState(true);
   const [params, setParams] = useSearchParams();
   const lastStdRef = useRef<HTMLDivElement>(null);
-  //values to controll in absent input
-const [maxAbsent,setMaxAbsent]=useState(params.get('maxabsent')||'0')
-const [minAbsent,setMinAbsent]=useState(params.get('minabsent')||'0')
+  const [minAbs, setMinAbs] = useState("");
+  const [maxAbs, setMaxAbs] = useState("");
+
 
 
   const scrollToLast = () => {
@@ -34,17 +34,12 @@ const [minAbsent,setMinAbsent]=useState(params.get('minabsent')||'0')
     const query = params.get('q') || '';
     const graduated = params.get('graduated');
     const courses = params.getAll('courses');
-
+    
 
     if (query) {
       setFilteredList(studentsList.filter(std => std.name.toLowerCase().includes(query.toLowerCase())));
     } else {
       setFilteredList(studentsList);
-    }
-
-    if(Number(minAbsent)||Number(maxAbsent)){
-    const filterStudents= studentsList.filter(std=>std.absents>=Number(minAbsent)&&std.absents<=Number(maxAbsent))
-      setFilteredList(filterStudents);
     }
 
     if (graduated === 'grad') {
@@ -63,6 +58,11 @@ const [minAbsent,setMinAbsent]=useState(params.get('minabsent')||'0')
     setFiltering(false);
 
   }, [params, studentsList]);
+
+  const handleFilter = (min: number, max: number) => {
+    const filtered = studentsList.filter((s) => s.absents >= min && s.absents <= max);
+    setFilteredList(filtered);
+  };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const query = event.target.value;
@@ -95,6 +95,7 @@ const [minAbsent,setMinAbsent]=useState(params.get('minabsent')||'0')
     setParams(params);
   }
 
+
   if (loading || filtering) {
     return <div className="spinner"></div>;
   }
@@ -115,18 +116,30 @@ const [minAbsent,setMinAbsent]=useState(params.get('minabsent')||'0')
           <option value="non-grad">Not Graduated</option>
         </select>
 
-        <div>
-          <input type="number"  min={0}  value={minAbsent}   onChange={(e)=>{setMinAbsent(e.target.value)}} placeholder="min absent"/>
-          <input type="number"  min={0} value={maxAbsent}  onChange={(e)=>{setMaxAbsent(e.target.value)}} placeholder="max absent"/>
-
-          <button type="submit"
-            onClick={()=>{
-            params.set('maxabsent',maxAbsent)
-            params.set('minabsent',minAbsent)
-            setParams(params)
-            
-          }} >go!!find students</button>
-        </div>
+        <div >
+      <input
+        type="number"
+        value={minAbs}
+        onChange={(e) => setMinAbs(e.target.value)}
+        placeholder="min absences"
+      />
+      <input
+        type="number"
+        value={maxAbs}
+        onChange={(e) => setMaxAbs(e.target.value)}
+        placeholder="max absences"
+      />
+      <button
+        onClick={() => handleFilter(Number(minAbs), Number(maxAbs))}
+      >
+        Filter
+      </button>
+      <button 
+        onClick={() => setFilteredList(studentsList)}
+      >
+        rest
+      </button>
+    </div>
         <div>
           {
             COURSES_FILTERS.map(c => (
